@@ -1,0 +1,8 @@
+{
+  "fuji": {
+    "NftMinter": {
+      "address": "0x2125AaDAb7e9A01e9e9EaafbF30360485550cC39",
+      "startBlock": 24529539
+    }
+  }
+}
