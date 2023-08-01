@@ -1,25 +1,32 @@
-type Nft @entity {
+type NFT @entity {
   id: Bytes!
   tokenId: BigInt!
-  price: BigInt!
-  tokenIPFSPath: String!
-  createdAtTimeStamp: BigInt!
-  isSold: Boolean!
-  isListed: Boolean!
-  isSoulBound: Boolean!
-  owner: Bytes!
-  collection: Bytes!
-  category: String!
-  chain: BigInt!
-  transactions: Bytes!
+  price: BigInt
+  tokenIPFSPath: String
+  createdAtTimeStamp: BigInt
+  isSold: Boolean
+  isListed: Boolean
+  isSoulBound: Boolean
+  owner: User!
+  collection: Collection!
+  category: String
+  chain: BigInt
+  transactions: Bytes
 }
 
 type Collection @entity {
   id: Bytes!
   address: Bytes! # address
-  creator: Bytes! # address
-  name: String! # string
-  description: String! # string
+  creator: User!
+  name: String # string
+  description: String # string
+  nfts: [NFT!]
+}
+
+type User @entity {
+  id: Bytes!
+  address: Bytes!
+  ownedNFTs: [NFT!]
 }
 
 
