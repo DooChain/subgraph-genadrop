@@ -3,10 +3,8 @@ import {
   Approval as ApprovalEvent,
   ApprovalForAll as ApprovalForAllEvent,
   Transfer as TransferEvent,
-} from "../generated/SoulBound/SoulBound";
+} from "../generated/NftSoulBound/NftSoulBound";
 import { Collection, User, NFT } from "../generated/schema";
-
-const contractAddress = "0x0a06A3d6F23F1B3DC342c146DA0170D544c51532";
 
 export function handleApproval(event: ApprovalEvent): void {
   // let entity = new Approval(
@@ -35,21 +33,13 @@ export function handleApprovalForAll(event: ApprovalForAllEvent): void {
 }
 
 export function handleTransfer(event: TransferEvent): void {
-  let nft = NFT.load(
-    Bytes.fromHexString(
-      contractAddress.concat(
-        Bytes.fromBigInt(event.params.tokenId).toHexString()
-      )
-    )
+  const nftId = Bytes.fromHexString(
+    event.address
+      .toHexString()
+      .concat(Bytes.fromBigInt(event.params.tokenId).toHexString())
   );
-  if (!nft)
-    nft = new NFT(
-      Bytes.fromHexString(
-        contractAddress.concat(
-          Bytes.fromBigInt(event.params.tokenId).toHexString()
-        )
-      )
-    );
+  let nft = NFT.load(nftId);
+  if (!nft) nft = new NFT(nftId);
 
   nft.tokenID = event.params.tokenId;
   nft.createdAtTimestamp = event.block.timestamp;
@@ -61,7 +51,6 @@ export function handleTransfer(event: TransferEvent): void {
   let owner = User.load(event.params.to);
   if (!owner) {
     owner = new User(event.params.to);
-    owner.address = event.params.to;
   }
   nft.owner = owner.id;
 
@@ -70,10 +59,9 @@ export function handleTransfer(event: TransferEvent): void {
   userNfts.push(nft.id);
   owner.nfts = userNfts;
 
-  let collection = Collection.load(Bytes.fromHexString(contractAddress));
+  let collection = Collection.load(event.address);
   if (collection == null) {
-    collection = new Collection(Bytes.fromHexString(contractAddress));
-    collection.address = Bytes.fromHexString(contractAddress);
+    collection = new Collection(event.address);
   }
   nft.collection = collection.id;
 

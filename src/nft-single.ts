@@ -10,10 +10,8 @@ import {
   TransferSingle as TransferSingleEvent,
   URI as URIEvent,
   Upgraded as UpgradedEvent,
-} from "../generated/SingleNftMinter/SingleNftMinter";
+} from "../generated/NftSingle/NftSingle";
 import { Collection, NFT, User } from "../generated/schema";
-
-const contractAddress = "0x41109163d8cf45E9dDd32801A8deb54b9513b1FA";
 
 export function handleAdminChanged(event: AdminChangedEvent): void {
   // let entity = new AdminChanged(
@@ -78,17 +76,13 @@ export function handleTransferBatch1(event: TransferBatch1Event): void {
 }
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
-  let nft = NFT.load(
-    Bytes.fromHexString(
-      contractAddress.concat(Bytes.fromBigInt(event.params.id).toHexString())
-    )
+  const nftId = Bytes.fromHexString(
+    event.address
+      .toHexString()
+      .concat(Bytes.fromBigInt(event.params.id).toHexString())
   );
-  if (!nft)
-    nft = new NFT(
-      Bytes.fromHexString(
-        contractAddress.concat(Bytes.fromBigInt(event.params.id).toHexString())
-      )
-    );
+  let nft = NFT.load(nftId);
+  if (!nft) nft = new NFT(nftId);
 
   nft.tokenID = event.params.id;
   nft.createdAtTimestamp = event.block.timestamp;
@@ -100,7 +94,6 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
   let owner = User.load(event.params.to);
   if (!owner) {
     owner = new User(event.params.to);
-    owner.address = event.params.to;
   }
   nft.owner = owner.id;
 
@@ -109,10 +102,9 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
   userNfts.push(nft.id);
   owner.nfts = userNfts;
 
-  let collection = Collection.load(Bytes.fromHexString(contractAddress));
+  let collection = Collection.load(event.address);
   if (collection == null) {
-    collection = new Collection(Bytes.fromHexString(contractAddress));
-    collection.address = Bytes.fromHexString(contractAddress);
+    collection = new Collection(event.address);
   }
   nft.collection = collection.id;
 
@@ -142,17 +134,14 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
 }
 
 export function handleURI(event: URIEvent): void {
-  let nft = NFT.load(
-    Bytes.fromHexString(
-      contractAddress.concat(Bytes.fromBigInt(event.params.id).toHexString())
-    )
+  const nftId = Bytes.fromHexString(
+    event.address
+      .toHexString()
+      .concat(Bytes.fromBigInt(event.params.id).toHexString())
   );
-  if (!nft)
-    nft = new NFT(
-      Bytes.fromHexString(
-        contractAddress.concat(Bytes.fromBigInt(event.params.id).toHexString())
-      )
-    );
+
+  let nft = NFT.load(nftId);
+  if (!nft) nft = new NFT(nftId);
 
   nft.tokenID = event.params.id;
   nft.tokenIPFSPath = event.params.value;
@@ -185,12 +174,9 @@ export function handleUpgraded(event: UpgradedEvent): void {
 export function handleCollectionInit(event: CollectionInitEvent): void {
   let collection = new Collection(event.params.collectionAddress);
 
-  collection.address = event.params.collectionAddress;
-
   let creator = User.load(event.params.collectionOwner);
   if (creator == null) {
     creator = new User(event.params.collectionOwner);
-    creator.address = event.params.collectionOwner;
   }
 
   collection.creator = creator.id;
